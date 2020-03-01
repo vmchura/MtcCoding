@@ -1,0 +1,23 @@
+@import play.api.i18n.Messages
+@import play.api.mvc.RequestHeader
+@import org.webjars.play.WebJarsUtil
+@import controllers.AssetsFinder
+@import shared.SharedMessages._
+@import play.api.data._
+@import shared.SharedMessages
+@()(implicit request: RequestHeader,
+        messages: Messages, webJarsUtil: WebJarsUtil, assets: AssetsFinder)
+
+@implicitFieldConstructor = @{
+    b4.vertical.fieldConstructor()
+}
+
+@main("MTC - Coding") {
+    <div id="containerJS"></div>
+    <div>
+        Hola desde Scala: @SharedMessages.message
+    </div>
+    <script>
+            Main.renderDiv("containerJS");
+    </script>
+}

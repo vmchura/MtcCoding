@@ -26,6 +26,7 @@ object Dependencies {
 
       "org.webjars" % "bootstrap" % "4.3.1" exclude("org.webjars", "jquery"),
       "org.webjars" % "jquery" % "3.2.1",
+      "org.webjars" % "jquery-easing" % "1.4.1",
       "net.codingwell" %% "scala-guice" % "4.2.6",
       "com.iheart" %% "ficus" % "1.4.7",
       "com.typesafe.play" %% "play-mailer" % "8.0.0",

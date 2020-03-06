@@ -25,8 +25,9 @@ class InsertFirstRutes @Inject() (
   import profile.api._
   def firstInsert() = {
 
+    println("RUTAS LOADED: "+PeruRoutes.PeruRoutes.rutas.length.toString)
 
-/*
+    /*
     def insertRoute(r: RutaSH): Future[Int] = {
       val ruta = Ruta(-1, r.tagName, r.longitud)
       for {

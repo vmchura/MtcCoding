@@ -46,12 +46,19 @@ class RoutesController @Inject() (
     val c2 = (-8443008.18975588, -951268.0134295707)
 
      */
+    /*
     val c0 = (-75.497897, -11.780516)
     val c1 = (-75.212615, -12.067813)
     val c2 = (-75.566085, -12.633227)
 
-    val ls = LineStringSH((255, 0, 0), 4d, Seq(c0, c1, c2))
-    println("HERE!!!")
+
+     */
+
+    val randomRoute = PeruRoutes.PeruRoutes.randomRoute()
+    println(randomRoute.tagName)
+    //val ls = LineStringSH((255, 0, 0), 4d, Seq(c0, c1, c2))
+    val ls = LineStringSH((255, 0, 0), 4d, randomRoute.coordinates.map { case (a, b, _) => (a, b) })
+    //println("HERE!!!")
     Ok(Json.obj("response" -> write(ls)))
 
   }

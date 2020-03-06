@@ -1,19 +1,61 @@
 # MTC-CODING
 
 
-puntos.kml
-kml.Document
-        feautres Folders
-            feautres PlaceMark
-            
-eje.kml
-kml.Document
-        features Folders
-            each folder is a department
-            on each folder.features have a list of PlaceMarkers
-            each place maker have a tag, name eje, ang geometry is mulgeom
-            each mullt geom has a list of geomtry, the first item is a point, and the next ones is                   geometry is ListString
+mtc_pasajero
+------------
+
+data_type |character_maximum_length|
+----------|------------------------|
+idPasajero|                        |
 
 
-              
-       
+mtc_ruta
+------------
+
+column_name|data_type        |character_maximum_length|
+-----------|-----------------|------------------------|
+idRuta     |integer          |                        |
+tagRuta    |character varying|                      32|
+progFin    |integer          |                        |
+
+
+mtc_limitevelocidad
+------------
+
+data_type|character_maximum_length|
+---------|------------------------|
+idLimite |                        |
+idRuta   |                        |
+progIni  |                        |
+progFin  |                        |
+limite   |                        |
+
+mtc_travel
+------------
+
+data_type |character_maximum_length|
+----------|------------------------|
+idTravel  |                        |
+startTime |                        |
+placa     |                      32|
+idRuta    |                        |
+isLive    |                        |
+direction |                        |
+idPasajero|                        |
+infringio |                        |
+
+
+
+
+
+mtc_datatravel
+------------
+
+
+data_type  |character_maximum_length|
+-----------|------------------------|
+idDataTable|                        |
+dataTime   |                        |
+idTravel   |                        |
+prog       |                        |
+velocidad  |                        |

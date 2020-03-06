@@ -20,6 +20,7 @@ import com.mohiva.play.silhouette.password.{ BCryptPasswordHasher, BCryptSha256P
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import com.typesafe.config.Config
+import models.daos.{ MobileDAO, MobileDAOImpl }
 import models.daos.authlayer.{ PasswordInfoDAOImpl, UserDAO, UserDAOImpl }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -69,6 +70,7 @@ class AuthModule extends AbstractModule with ScalaModule {
     // Replace this with the bindings to your concrete DAOs
     //bind[DelegableAuthInfoDAO[PasswordInfo]].to[PasswordInfoDAOImpl]
 
+    bind[MobileDAO].to[MobileDAOImpl]
   }
   @Provides
   def providePasswordDAO(dbConfigProvider: DatabaseConfigProvider): DelegableAuthInfoDAO[PasswordInfo] =

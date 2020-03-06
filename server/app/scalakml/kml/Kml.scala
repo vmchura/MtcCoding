@@ -985,8 +985,6 @@ case class FeaturePart(
     this.copy(styleSelector = if (styleSelector == Nil) (Seq.empty :+ value) else (styleSelector :+ value))
   }
 
-  override def toString: String = s"FPart(${name.getOrElse("NN")})"
-
 }
 /**
  * This is an abstract element and cannot be used directly in a KML file.

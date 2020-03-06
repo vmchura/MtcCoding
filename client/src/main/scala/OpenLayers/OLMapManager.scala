@@ -22,14 +22,19 @@ class OLMapManager(targetParam: String) {
 
   def addRoute(lineStringSH: LineStringSH): Vector = {
 
-    val route = new LineString(lineStringSH.coordinates.map {
+    val coordinatesJS = lineStringSH.coordinates.map {
+      case (a, b) => Projection.fromLonLat(Seq(a, b).toJSArray)
+    }
+
+    coordinatesJS.zip(coordinatesJS.tail).foreach {
       case (a, b) =>
+        val dx = a(0) - b(0)
+        val dy = a(1) - b(1)
+        val d = Math.sqrt(dx * dx + dy * dy)
+        println(f"$d%8.3f")
+    }
 
-        val k = Projection.fromLonLat(Seq(a, b).toJSArray)
-        println(k)
-        k
-
-    }.toJSArray)
+    val route = new LineString(coordinatesJS.toJSArray)
 
     val routeFeature = new Feature(js.Dynamic.literal("type" -> "route", "geometry" -> route))
 

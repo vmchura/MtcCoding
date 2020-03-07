@@ -52,4 +52,9 @@ class RutaController @Inject() (
     }
   }
 
+  def getRutasAndMetadata() = Action.async {
+    mobileDAO.getAllRutasSHMeta().map { seq =>
+      Ok(Json.obj("response" -> write(seq)))
+    }
+  }
 }

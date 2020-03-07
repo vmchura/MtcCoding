@@ -13,7 +13,15 @@ class JavaScriptRouter @Inject() (components: ControllerComponents)
 
     Ok(
       JavaScriptReverseRouter("jsRoutes")(
-        routes.javascript.RoutesController.provideRandomLineString
+        routes.javascript.RoutesController.provideRandomLineString,
+        routes.javascript.ReportController.findDangerousVehiclesLive,
+        routes.javascript.ReportController.findDangerousVehicles,
+        routes.javascript.ReportController.findInformalVehicles,
+        routes.javascript.ReportController.findInformalVehiclesLive,
+        routes.javascript.ReportController.findRutasInformales,
+        routes.javascript.ReportController.findSegmentosCriticos,
+        routes.javascript.ReportController.getDataChartVelocity,
+        routes.javascript.RutaController.getRutasAndMetadata
 
       )
 

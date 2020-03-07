@@ -27,5 +27,3 @@ case class RutaSH(tagName: String, coordinates: Array[(Double, Double, Double)],
 
   }
 }
-
-case class RutaSHMeta(idRuta: Int, tagName: String)

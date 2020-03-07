@@ -25,8 +25,13 @@ class InsertFirstRutes @Inject() (
   import profile.api._
   def firstInsert() = {
 
-    println("RUTAS LOADED: "+PeruRoutes.PeruRoutes.rutas.length.toString)
-
+    val f = mobileDAO.getAllRoutsSH().map { m =>
+      PeruRoutes.PeruRoutes.rutasOnMemory = m
+      PeruRoutes.PeruRoutes.rutasOnMemory.foreach {
+        case (a, b) => println(s"$a + ${b.tagName}")
+      }
+    }
+    f.onComplete(_ => println("END LOAD"))
     /*
     def insertRoute(r: RutaSH): Future[Int] = {
       val ruta = Ruta(-1, r.tagName, r.longitud)

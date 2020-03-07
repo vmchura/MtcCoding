@@ -38,12 +38,14 @@ trait RouteMobileMapping {
     def idTravel = column[Int]("idTravel", O.PrimaryKey, O.AutoInc)
     def startTime = column[DateTime]("startTime")
     def placa = column[String]("placa", O.Length(32))
+    def esInformal = column[Boolean]("esInformal")
     def idRuta = column[Int]("idRuta")
     def isLive = column[Boolean]("isLive")
     def direction = column[Boolean]("direction")
     def idPasajero = column[Int]("idPasajero")
     def infringio = column[Boolean]("infringio")
-    override def * = (idTravel, startTime, placa, idRuta, isLive, direction, idPasajero, infringio).mapTo[Travel]
+    def initialPosition = column[Int]("initialPosition")
+    override def * = (idTravel, startTime, placa, esInformal, idRuta, isLive, direction, initialPosition, idPasajero, infringio).mapTo[Travel]
 
     def ruta = foreignKey("mtc_travel_ruta", idRuta, rutaTQ)(_.idRuta, onDelete = ForeignKeyAction.Cascade, onUpdate = ForeignKeyAction.Cascade)
     def pasajero = foreignKey("mtc_travel_pasajero", idPasajero, pasajeroTQ)(_.idPasajero, onDelete = ForeignKeyAction.Cascade, onUpdate = ForeignKeyAction.Cascade)

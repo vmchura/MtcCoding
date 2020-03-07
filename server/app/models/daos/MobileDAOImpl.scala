@@ -5,6 +5,10 @@ import models.mappers.{ CelaRefinedProfile, RouteMobileMapping }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import shared.{ LineStringSH, RutaSH, RutaSHMeta }
+import PeruRoutes.PeruRoutes.rutasOnMemory
+
+import scala.reflect.ClassTag
 @Singleton()
 class MobileDAOImpl @Inject() (
   protected val dbConfigProvider: DatabaseConfigProvider,
@@ -60,4 +64,143 @@ class MobileDAOImpl @Inject() (
 
   override def getLimitesFromRuta(idRuta: Int): Future[Seq[LimiteVelocidad]] = db.run(limiteVelocidadTQ.filter(_.idRuta === idRuta).result)
 
+  override def getAllRutas(): Future[Seq[Ruta]] = db.run(rutaTQ.result)
+
+  override def getRutaToDraw(rutaID: Int): Future[Option[LineStringSH]] = {
+    if (rutasOnMemory.contains(rutaID)) {
+      val ruta = rutasOnMemory(rutaID)
+      val ls = LineStringSH((255, 0, 0), 5d, ruta.coordinates.map { case (a, b, _) => (a, b) })
+      Future.successful(Some(ls))
+    } else {
+      Future.successful(None)
+    }
+  }
+
+  override def getAllRutasSHMeta(): Future[Seq[RutaSHMeta]] = {
+    val res = rutasOnMemory.map { case (key, value) => RutaSHMeta(key, value.tagName) }.toList
+    Future.successful(res)
+  }
+
+  private def findLastData(travel: Travel): Future[Option[DataTravel]] = {
+    db.run(dataTravelTQ.filter(_.idTravel === travel.idTravel).sortBy(_.dataTime.desc).take(1).result.headOption)
+  }
+  private def sequenceOfFuture[T, F: ClassTag](data: Seq[T], futMap: T => Future[F]): Future[List[F]] = {
+    data.foldLeft(Future(List.empty[F]))((prevFut, t) => {
+      for {
+        prev <- prevFut
+        curr <- futMap(t)
+      } yield {
+        prev :+ curr
+      }
+    })
+  }
+
+  override def findDangerousVehiclesLive(idRuta: Int): Future[Seq[(Travel, DataTravel)]] = {
+    for {
+      travel <- db.run(travelTQ.filter(t => t.idRuta === idRuta && t.infringio === true && t.isLive === true).result)
+      datatravel <- sequenceOfFuture(travel, findLastData)
+    } yield {
+      travel.zip(datatravel).flatMap { case (a, b) => b.map(z => (a, z)) }
+    }
+  }
+
+  override def findDangerousVehicles(idRuta: Int): Future[Seq[Travel]] = {
+    db.run(travelTQ.filter(t => t.idRuta === idRuta && t.infringio === true).result)
+  }
+
+  override def findInformalVehicles(idRuta: Int): Future[Seq[Travel]] = {
+    db.run(travelTQ.filter(t => t.idRuta === idRuta && t.esInformal === true).result)
+
+  }
+
+  override def findInformalVehiclesLive(idRuta: Int): Future[Seq[(Travel, DataTravel)]] = {
+    for {
+      travels <- db.run(travelTQ.filter(t => t.idRuta === idRuta && t.esInformal === true && t.isLive === true).result)
+      datatravel <- sequenceOfFuture(travels, findLastData)
+    } yield {
+      travels.zip(datatravel).flatMap { case (a, b) => b.map(z => (a, z)) }
+    }
+  }
+
+  private def ratioRutaInformal(idRuta: Int): Future[Int] = {
+    for {
+      informales <- db.run(travelTQ.filter(t => t.esInformal === true && t.idRuta === idRuta).length.result)
+      total <- db.run(travelTQ.filter(_.idRuta === idRuta).length.result)
+    } yield {
+      if (total == 0) {
+        0
+      } else {
+        Math.round(informales * 100d / total).toInt
+      }
+    }
+  }
+  private def findCoreInformales(idRuta: Int): Future[Seq[LineStringSH]] = {
+    for {
+      initialPositions <- db.run(travelTQ.filter(t => t.esInformal === true && t.idRuta === idRuta).map(_.initialPosition).result)
+    } yield {
+
+      val z = initialPositions.groupBy(k => k / 1000).toList.map { case (k, v) => (v.length, k) }.sorted.reverse.map(_._2)
+
+      val u = if (z.length > 2) z.take(2) else z
+
+      if (rutasOnMemory.contains(idRuta)) {
+        val ruta = rutasOnMemory(idRuta)
+        u.map { k =>
+          val coordinatesKilometer = ruta.coordinates.filter { case (_, _, p) => k * 1000 <= p && (p <= ((k + 1) * 1000)) }.sortBy(_._3.toInt).map { case (x, y, _) => (x, y) }
+          LineStringSH((255, 0, 0), 6d, coordinatesKilometer)
+        }
+      } else {
+        Nil
+      }
+
+    }
+  }
+
+  private def createMiniRutasInformales(rutaIDSH: (Int, RutaSH)): Future[(String, Int, Seq[LineStringSH], LineStringSH)] = {
+    val (rutaID, rutaSH) = rutaIDSH
+    for {
+      ratio <- ratioRutaInformal(rutaID)
+      listaInformales <- findCoreInformales(rutaID)
+    } yield {
+      (rutaSH.tagName, ratio, listaInformales, LineStringSH((0, 0, 255), 3d, rutaSH.coordinates.map { case (a, b, _) => (a, b) }))
+    }
+
+  }
+
+  override def findRutasInformales(): Future[Seq[(String, Int, Seq[LineStringSH], LineStringSH)]] = {
+
+    sequenceOfFuture(rutasOnMemory.toSeq, createMiniRutasInformales)
+  }
+
+  override def findSegmentosCriticos(rutaID: Int): Future[Option[(String, Int, Seq[LineStringSH], LineStringSH)]] = {
+    rutasOnMemory.get(rutaID).map { ruta =>
+      createMiniRutasInformales((rutaID, ruta)).map(z => Some(z))
+    }.getOrElse(Future.successful(None))
+  }
+
+  override def getAllRoutsSH(): Future[Map[Int, RutaSH]] = {
+    def getRutaSH(ruta: Ruta): Future[(Int, RutaSH)] = {
+      for {
+        coordinates <- db.run(rutaCoordiantesTQ.filter(_.idRuta === ruta.idRuta).sortBy(_.prog).result)
+      } yield {
+        ruta.idRuta -> RutaSH(ruta.tagRuta, coordinates.map(rc => (rc.lng, rc.lat, rc.prog.toDouble)), ruta.progFin)
+      }
+    }
+
+    for {
+      rutas <- db.run(rutaTQ.result)
+      rutasSH <- {
+        rutas.foldLeft(Future(List.empty[(Int, RutaSH)]))((prevFut, r) => {
+          for {
+            prev <- prevFut
+            curr <- getRutaSH(r)
+          } yield {
+            prev :+ curr
+          }
+        })
+      }
+    } yield {
+      rutasSH.toMap
+    }
+  }
 }

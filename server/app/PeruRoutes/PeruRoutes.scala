@@ -33,6 +33,7 @@ object PeruRoutes {
     RutaSH(tag, validCoordinates, validCoordinates.last._3.toInt)
 
   }
+  /*
   val rutas: Seq[RutaSH] = {
     val kmlOption: Option[Kml] = new KmlFileReader().getKmlFromFile("/home/vmchura/Documents/002.DescargasFirefox/RVD_Eje.kml")
 
@@ -81,8 +82,10 @@ object PeruRoutes {
 
   }
 
+  val mapRutasByID = mutable.Map.empty[Int, RutaSH]
   println(rutas.mkString("\n"))
-
-  def randomRoute(): RutaSH = rutas.head
+*/
+  var rutasOnMemory = Map.empty[Int, RutaSH]
+  def randomRoute(): RutaSH = ???
 
 }

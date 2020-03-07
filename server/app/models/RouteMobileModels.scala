@@ -5,7 +5,16 @@ import org.joda.time.DateTime
 case class Ruta(idRuta: Int, tagRuta: String, progFin: Int)
 case class RutaCoordinates(idCoordinate: Int, lng: Double, lat: Double, prog: Int, idRuta: Int)
 case class Pasajero(idPasajero: Int)
-case class Travel(idTravel: Int, startTime: DateTime, placa: String, idRuta: Int, isLive: Boolean, direction: Boolean, idPasajero: Int, infringio: Boolean)
+case class Travel(
+  idTravel: Int,
+  startTime: DateTime,
+  placa: String,
+  esInformal: Boolean,
+  idRuta: Int,
+  isLive: Boolean,
+  direction: Boolean,
+  initialPosition: Int,
+  idPasajero: Int, infringio: Boolean)
 
 /**
  *

@@ -26,21 +26,14 @@ class OLMapManager(targetParam: String) {
       case (a, b) => Projection.fromLonLat(Seq(a, b).toJSArray)
     }
 
-    coordinatesJS.zip(coordinatesJS.tail).foreach {
-      case (a, b) =>
-        val dx = a(0) - b(0)
-        val dy = a(1) - b(1)
-        val d = Math.sqrt(dx * dx + dy * dy)
-        println(f"$d%8.3f")
-    }
-
     val route = new LineString(coordinatesJS.toJSArray)
 
     val routeFeature = new Feature(js.Dynamic.literal("type" -> "route", "geometry" -> route))
 
+    val (r, g, b) = lineStringSH.color
     val vectorLayer = new OpenLayers.Vector(js.Dynamic.literal(
       source = new VectorSource(js.Dynamic.literal(features = js.Array(routeFeature))),
-      style = new Style(js.Dynamic.literal(stroke = new Stroke(js.Dynamic.literal(width = 6, color = js.Array(237, 212, 0, 0.8)))))))
+      style = new Style(js.Dynamic.literal(stroke = new Stroke(js.Dynamic.literal(width = lineStringSH.width, color = js.Array(r, g, b, 0.8)))))))
 
     olmap.addLayer(vectorLayer)
     listBufferLayerAppend.append(vectorLayer)

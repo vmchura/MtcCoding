@@ -3,7 +3,7 @@ import com.thoughtworks.binding.Binding
 import Binding._
 import JSRoutes.JavaScriptRoutes
 import OpenLayers.{ OLMapManager, Projection, View }
-import PlayCallUtils.PlayAjax
+import PlayCallUtils.{ PlayAjax, PlayCall }
 import org.lrng.binding.html
 import html.NodeBinding
 import org.scalajs.dom.html.Button
@@ -12,8 +12,11 @@ import plotly._
 import element._
 import layout._
 import Plotly._
+import com.thoughtworks.binding
+import org.scalajs.dom.Event
 import org.scalajs.dom.ext.Ajax
-import shared.LineStringSH
+import scalaz.Bind
+import shared.{ LineStringSH, RutaSHMeta }
 import upickle.default._
 
 import scala.scalajs.js
@@ -24,6 +27,38 @@ import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 object AppShowRoute {
 
   var mapOLOpt: Option[OLMapManager] = None
+  val rutaSelected = Var[Option[RutaSHMeta]](None)
+  val rutasMeta = Vars[RutaSHMeta]()
+
+  val textPrefix = Var[String]("")
+
+  @html
+  val inputPrefix = {
+    val in: NodeBinding[HTMLInputElement] = <input type="email" id="inputrute" class="form-control" data:aria-describedby="ruta" placeholder="Escoja ruta"> </input>
+    in.value.onchange = _ => {
+      println("CHANGED")
+      textPrefix.value = in.value.value
+      println("CHANGED to " + textPrefix.value)
+    }
+
+    <div class="form-group">
+      <label for="inputrute">Ruta</label>
+      { in }
+    </div>
+
+  }
+
+  @html
+  val rutasByPrefix = {
+    val xy: BindingSeq[RutaSHMeta] = for {
+      e <- rutasMeta
+      if e.tagName.toLowerCase().startsWith(textPrefix.bind)
+    } yield {
+      e
+    }
+    xy
+  }
+
   @html
   def init(): Unit = {
 
@@ -36,6 +71,16 @@ object AppShowRoute {
     html.render(rowSearchElement, searchRow)
     //plotKmPeligrosos(Seq((0, 10), (1000, 10), (1100, 20), (1200, 10), (1400, 40)))
     mapOLOpt = Some(new OLMapManager("mapShowExactRoad"))
+
+    val pc = JSRoutes.JavaScriptRoutes.controllers.RutaController.getRutasAndMetadata()
+    val ac = new PlayAjax(pc)
+    val f: Future[Either[String, Seq[RutaSHMeta]]] = ac.callByAjaxWithParser(dyn => read[Seq[RutaSHMeta]](dyn.response.toString))
+    f.onComplete {
+      case Success(Left(error)) => println("ERROR DOWNLOAD rutaSHMeta")
+      case Success(Right(value)) => rutasMeta.value ++= value
+      case Failure(exception) => println(s"ERROR EXCEPTION: ${exception.toString}")
+    }
+
   }
   @html
   def getCard(colorTextTitle: String, title: String, text: String, icon: NodeBinding[Node]) = <div class="col-xl-3 col-md-6 mb-4">
@@ -92,35 +137,60 @@ object AppShowRoute {
      */
   }
 
+  def actionWhenRutaSelected(rutaSHMeta: RutaSHMeta): Unit = {
+    val playCall = JavaScriptRoutes.controllers.ReportController.findSegmentosCriticos(rutaSHMeta.idRuta)
+    val playAjax: PlayAjax[Option[(String, Int, Seq[LineStringSH], LineStringSH)]] = new PlayAjax(playCall)
+    val futResponse = playAjax.callByAjaxWithParser(dyn => read[Option[(String, Int, Seq[LineStringSH], LineStringSH)]](dyn.response.toString))
+    updateReport(futResponse)
+  }
+
   @html
-  val buttonUpdateReport: NodeBinding[Button] = {
-    val button: NodeBinding[Button] = <button>UPDATE me</button>
-    button.value.onclick = _ => {
-      println("CLICK")
-      val playCall = JavaScriptRoutes.controllers.RoutesController.provideRandomLineString
-      val playAjax = new PlayAjax(playCall)
-      val futResponse = playAjax.callByAjaxWithParser(dyn => read[LineStringSH](dyn.response.toString))
-      updateReport(futResponse)
-    }
-    button
+  val rutasDropDown = Binding {
+    <div class="form-group">
+      <label for="droprutas">Seleccione</label>
+      <div class="dropdown" id="droprutas">
+        <button class="btn btn-info dropdown-toggle btn-block" type="button" id="dropdownMenu0" data:data-toggle="dropdown" data:aria-haspopup="true" data:aria-expanded="false">
+          { rutaSelected.bind.map(_.tagName).getOrElse("Seleccionar proyecto") }
+        </button>
+        <div class="dropdown-menu" data:aria-labelledby="dropdownMenu0">
+          {
+            import scalaz.std.list._
+            for (rutaSH <- rutasByPrefix) yield {
+
+              <button class="dropdown-item btn-block" type="button" onclick={ _: Event => actionWhenRutaSelected(rutaSH) }>
+                { rutaSH.tagName }
+              </button>
+            }
+          }
+        </div>
+      </div>
+    </div>.bind
   }
 
   @html
   val searchRow = {
     <div class="row">
-      { buttonUpdateReport }
+      <div class="col4">
+        { inputPrefix }
+      </div>
+      <div class="col4">
+        { rutasDropDown }
+      </div>
     </div>
   }
 
-  def updateReport(futResponse: Future[Either[String, LineStringSH]]) = {
+  def updateReport(futResponse: Future[Either[String, Option[(String, Int, Seq[LineStringSH], LineStringSH)]]]) = {
     futResponse.onComplete {
       case Failure(error) => println(s"ERROR: ${error.toString}")
       case Success(Left(error)) => println(s"LEFT(error) = $error")
-      case Success(Right(lineString)) =>
+      case Success(Right(Some((tagRuta, porcentajeInformalidad, informales, lineString)))) =>
         println("SUCCESS!!")
         val mapOL = mapOLOpt.getOrElse(new OLMapManager("mapShowExactRoad"))
         mapOL.cleanLayers()
         mapOL.addRoute(lineString)
+        println(s"informales: ${informales.length}")
+        informales.foreach { mapOL.addRoute }
+
         val cxminOpt = lineString.coordinates.map(_._1).minOption
         val cxmaxOpt = lineString.coordinates.map(_._1).maxOption
 

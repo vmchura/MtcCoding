@@ -47,10 +47,13 @@
             <![endif]-->
 
         @*        <link rel="stylesheet" media="screen" href="@controllers.routes.Assets.versioned("stylesheets/main.css")">*@
-        <script src="https://d3js.org/d3-format.v1.min.js"></script>
+        @*<script src="https://d3js.org/d3-format.v1.min.js"></script>*@
+
+        <script src="@assets.path("jscript/d3-format.min.js")"></script>
+
         <link href="@controllers.routes.Assets.versioned("admin/vendor/fontawesome-free/css/all.min.css")" rel="stylesheet" type="text/css">
         <link href="@controllers.routes.Assets.versioned("admin/css/sb-admin-2.min.css")" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+        <link href="@controllers.routes.Assets.versioned("css/nunito.css")" rel="stylesheet">
         <link rel="stylesheet" media="screen" href="@controllers.routes.Assets.versioned("css/ol.css")">
         <script src="@assets.path("jscript/ol.js")"></script>
         <script src="@assets.path("jscript/scalaol.js")"></script>

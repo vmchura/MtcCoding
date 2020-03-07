@@ -11,6 +11,7 @@ GET /ruta/allRutasID                    controllers.RutaController.getRutasID()
 GET /travel/registerNewTravel/:idRuta/:pasajeroID/:startTime/:placa/:direction/:initialPosition controllers.TravelController.registerNewTravel(idRuta: Int, pasajeroID: Int, startTime: Long, placa: String, direction: Int, initialPosition: Int )
 GET /travel/addNewData/:idTravel/:position/:timeStamp/:velocity controllers.TravelController.addNewDataTravel(idTravel: Int, position: Int, timeStamp: Long, velocity: Int)
 
+
 GET /reporter/findDangerousVehiclesLive/:idRuta controllers.ReportController.findDangerousVehiclesLive(idRuta: Int)
 GET /reporter/findDangerousVehicles/:idRuta     controllers.ReportController.findDangerousVehicles(idRuta: Int)
 GET /reporter/findInformalVehicles/:idRuta      controllers.ReportController.findInformalVehicles(idRuta: Int)

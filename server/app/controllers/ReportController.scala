@@ -12,7 +12,7 @@ import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.libs.mailer.{ Email, MailerClient }
 import play.api.mvc.{ AbstractController, AnyContent, ControllerComponents }
-import shared.LineStringSH
+import shared.{ DataTravelSH, LineStringSH, TravelSH }
 import utils.authlayer.DefaultEnv
 import upickle.default._
 
@@ -39,5 +39,55 @@ class ReportController @Inject() (
   assets: AssetsFinder,
   ex: ExecutionContext
 ) extends AbstractController(components) with I18nSupport {
+
+  def findDangerousVehiclesLive(idRuta: Int) = Action.async { implicit request =>
+    mobileDAO.findDangerousVehiclesLive(idRuta).map { s =>
+      val toSend: Seq[(TravelSH, DataTravelSH)] = s.map { case (travel, dataTravel) => (travel.toTravelSH(), dataTravel.toDataTravelSH()) }
+      Ok(Json.obj("response" -> write(toSend)))
+    }
+  }
+  def findDangerousVehicles(idRuta: Int) = Action.async { implicit request =>
+    mobileDAO.findDangerousVehicles(idRuta).map { s =>
+      val toSend: Seq[TravelSH] = s.map(_.toTravelSH())
+      Ok(Json.obj("response" -> write(toSend)))
+    }
+
+  }
+
+  def findInformalVehicles(idRuta: Int) = Action.async { implicit request =>
+    mobileDAO.findInformalVehicles(idRuta).map { s =>
+      val toSend: Seq[TravelSH] = s.map(_.toTravelSH())
+      Ok(Json.obj("response" -> write(toSend)))
+    }
+
+  }
+
+  def findInformalVehiclesLive(idRuta: Int) = Action.async { implicit request =>
+    mobileDAO.findInformalVehiclesLive(idRuta).map { s =>
+      val toSend: Seq[(TravelSH, DataTravelSH)] = s.map { case (travel, dataTravel) => (travel.toTravelSH(), dataTravel.toDataTravelSH()) }
+      Ok(Json.obj("response" -> write(toSend)))
+    }
+  }
+
+  def findRutasInformales() = Action.async { implicit request =>
+    mobileDAO.findRutasInformales().map { s =>
+      Ok(Json.obj("response" -> write(s)))
+    }
+
+  }
+
+  def findSegmentosCriticos(rutaID: Int) = Action.async { implicit request =>
+    mobileDAO.findSegmentosCriticos(rutaID).map { s =>
+      Ok(Json.obj("response" -> write(s)))
+
+    }
+  }
+
+  def getDataChartVelocity(rutaID: Int) = Action.async { implicit request =>
+    mobileDAO.getDataChartVelocity(rutaID).map { s =>
+      Ok(Json.obj("response" -> write(s)))
+
+    }
+  }
 
 }

@@ -43,7 +43,9 @@ class TravelController @Inject() (
   ex: ExecutionContext
 ) extends AbstractController(components) with I18nSupport {
 
-  def registerNewTravel(idRuta: Int, pasajeroID: Int, starTime: Long, placa: String, direction: Boolean, initialPosition: Int) = Action.async { implicit request =>
+  def registerNewTravel(idRuta: Int, pasajeroID: Int,
+    starTime: Long, placa: String,
+    direction: Int, initialPosition: Int) = Action.async { implicit request =>
     val dt = new DateTime(starTime)
     val parameter = for {
       ruta <- mobileDAO.getRuta(idRuta)
@@ -53,7 +55,7 @@ class TravelController @Inject() (
     }
 
     val esInformal = Random.nextInt(10) > (idRuta % 10)
-    val travel = Travel(-1, dt, placa, esInformal, idRuta, isLive = true, direction = direction, initialPosition, pasajeroID, infringio = false)
+    val travel = Travel(-1, dt, placa, esInformal, idRuta, isLive = true, direction = direction > 0, initialPosition, pasajeroID, infringio = false)
     for {
       correct <- parameter
       res <- (if (correct) {
@@ -66,7 +68,8 @@ class TravelController @Inject() (
     }
   }
 
-  def addNewDataTravel(idTravel: Int, position: Int, timeStamp: Long, velocity: Int) = Action.async {
+  def addNewDataTravel(idTravel: Int, position: Int,
+    timeStamp: Long, velocity: Int) = Action.async {
     val dt = new DateTime(timeStamp)
     val dataTravel = DataTravel(-1, dt, idTravel, position, velocity)
     for {

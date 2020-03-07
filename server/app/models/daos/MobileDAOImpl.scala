@@ -69,7 +69,7 @@ class MobileDAOImpl @Inject() (
   override def getRutaToDraw(rutaID: Int): Future[Option[LineStringSH]] = {
     if (rutasOnMemory.contains(rutaID)) {
       val ruta = rutasOnMemory(rutaID)
-      val ls = LineStringSH((255, 0, 0), 5d, ruta.coordinates.map { case (a, b, _) => (a, b) })
+      val ls = LineStringSH((255, 0, 0), 5d, ruta.coordinates.map { case (a, b, _) => (a, b) }.toIndexedSeq)
       Future.successful(Some(ls))
     } else {
       Future.successful(None)
@@ -147,7 +147,7 @@ class MobileDAOImpl @Inject() (
         val ruta = rutasOnMemory(idRuta)
         u.map { k =>
           val coordinatesKilometer = ruta.coordinates.filter { case (_, _, p) => k * 1000 <= p && (p <= ((k + 1) * 1000)) }.sortBy(_._3.toInt).map { case (x, y, _) => (x, y) }
-          LineStringSH((255, 0, 0), 6d, coordinatesKilometer)
+          LineStringSH((255, 0, 0), 6d, coordinatesKilometer.toIndexedSeq)
         }
       } else {
         Nil
@@ -162,7 +162,7 @@ class MobileDAOImpl @Inject() (
       ratio <- ratioRutaInformal(rutaID)
       listaInformales <- findCoreInformales(rutaID)
     } yield {
-      (rutaSH.tagName, ratio, listaInformales, LineStringSH((0, 0, 255), 3d, rutaSH.coordinates.map { case (a, b, _) => (a, b) }))
+      (rutaSH.tagName, ratio, listaInformales, LineStringSH((0, 0, 255), 3d, rutaSH.coordinates.map { case (a, b, _) => (a, b) }.toIndexedSeq))
     }
 
   }
@@ -183,7 +183,7 @@ class MobileDAOImpl @Inject() (
       for {
         coordinates <- db.run(rutaCoordiantesTQ.filter(_.idRuta === ruta.idRuta).sortBy(_.prog).result)
       } yield {
-        ruta.idRuta -> RutaSH(ruta.tagRuta, coordinates.map(rc => (rc.lng, rc.lat, rc.prog.toDouble)), ruta.progFin)
+        ruta.idRuta -> RutaSH(ruta.tagRuta, coordinates.map(rc => (rc.lng, rc.lat, rc.prog.toDouble)).toArray, ruta.progFin)
       }
     }
 
@@ -201,6 +201,44 @@ class MobileDAOImpl @Inject() (
       }
     } yield {
       rutasSH.toMap
+    }
+  }
+
+  override def getDataChartVelocity(rutaID: Int): Future[Seq[Int]] = {
+    if (rutasOnMemory.contains(rutaID)) {
+      val ruta = rutasOnMemory(rutaID)
+      for {
+        allData <- getDataFromRuta(rutaID)
+      } yield {
+        val hmProm = allData.groupBy(dt => dt.prog / 100).toList.map {
+          case (hm, seqDT) => {
+            val sum = seqDT.map(_.velocidad).sum
+            val length = seqDT.length
+            val prom = if (length > 0)
+              Math.round(sum * 1d / length).toInt
+            else
+              0
+            (hm * 100, prom)
+          }
+        }.sorted
+
+        val hmComplete = hmProm.foldLeft((0, List.empty[Int])) {
+          case ((mustBe, prevList), (current, velProm)) =>
+
+            if (current == mustBe) {
+              (current + 100, velProm :: prevList)
+            } else {
+              assert(current > mustBe)
+              val zeros = (mustBe until current by 100).map(_ => 0).toList
+              (current + 100, velProm :: (zeros ++ prevList))
+            }
+        }._2
+
+        hmComplete.reverse
+
+      }
+    } else {
+      Future.successful(Nil)
     }
   }
 }

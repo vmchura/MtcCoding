@@ -1,6 +1,18 @@
 GET     /                             controllers.ApplicationController.index
 GET /randomLineString                   controllers.RoutesController.provideRandomLineString
 
+GET /pasajero/isRegistered/:idPasajero  controllers.PasajeroController.isRegistered(idPasajero: Int)
+GET /pasajero/registerNew               controllers.PasajeroController.registerNew()
+
+GET /ruta/routeData/:idRoute            controllers.RutaController.getRouteData(idRoute: Int)
+GET /ruta/allRutasID                    controllers.RutaController.getRutasID()
+
+GET /travel/registerNewTravel/:idRuta/:pasajeroID/:startTime/:placa/:direction/:initialPosition controllers.TravelController.registerNewTravel(idRuta: Int, pasajeroID: Int, startTime: Long, placa: String, direction: Int, initialPosition: Int )
+GET /travel/addNewData/:idTravel/:position/:timeStamp/:velocity controllers.TravelController.addNewDataTravel(idTravel: Int, position: Int, timeStamp: Long, velocity: Int)
+
+
+
+
 GET     /javascriptRoutes      controllers.JavaScriptRouter.javascriptRoutes
 # Prefix must match `play.assets.urlPrefix`
 GET /assets/*file                 controllers.Assets.at(file)

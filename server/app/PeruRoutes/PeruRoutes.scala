@@ -28,7 +28,7 @@ object PeruRoutes {
         val nd = acum + prevpoint.dist(bp)
         (bp, (lng, lat, nd))
       }
-    }.tail.map(_._2)
+    }.tail.map(_._2).toArray
 
     RutaSH(tag, validCoordinates, validCoordinates.last._3.toInt)
 

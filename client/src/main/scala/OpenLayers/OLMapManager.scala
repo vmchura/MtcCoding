@@ -1,6 +1,6 @@
 package OpenLayers
 
-import shared.LineStringSH
+import shared.{ DataTravelSH, LineStringSH, TravelSH }
 
 import scala.scalajs.js
 import js.JSConverters._
@@ -19,6 +19,7 @@ class OLMapManager(targetParam: String) {
     view = viewParam))
 
   var listBufferLayerAppend = ListBuffer.empty[Vector]
+  var listBufferFantasyLayerAppend = ListBuffer.empty[Vector]
 
   def addRoute(lineStringSH: LineStringSH): Vector = {
 
@@ -43,6 +44,50 @@ class OLMapManager(targetParam: String) {
   def cleanLayers(): Unit = {
     listBufferLayerAppend.foreach(olmap.removeLayer)
     listBufferLayerAppend.clear()
+
+  }
+  def cleanFantasyLayers(): Unit = {
+    listBufferFantasyLayerAppend.foreach(olmap.removeLayer)
+    listBufferFantasyLayerAppend.clear()
+  }
+  def addFantasyLayer(travelSH: TravelSH, dataTravelSH: DataTravelSH, colorParam: (Int, Int, Int)): Unit = {
+    val (r, g, b) = colorParam
+
+    val geoMarker = new Style(js.Dynamic.literal("image" ->
+      new CircleStyle(js.Dynamic.literal(
+        "radius" -> 7,
+        "fill" -> new FillStyle(js.Dynamic.literal("color" -> js.Array(r, g, b, 0.8))),
+        "stroke" -> new Stroke(js.Dynamic.literal("color" -> "white", "width" -> 2)),
+        "text" -> new Text(js.Dynamic.literal(
+          "font" -> "12px Calibri,sans-serif",
+          "fill" -> new FillStyle(js.Dynamic.literal("color" -> "#000")),
+          "stroke" -> new Stroke(js.Dynamic.literal("color" -> "#fff", "width" -> 2)),
+          "text" -> travelSH.placa))))))
+
+    val vehicleMarker = new Feature(js.Dynamic.literal("type" -> "geoMarker", "geometry" -> {
+      new Point(Projection.fromLonLat(Seq(dataTravelSH.lng, dataTravelSH.lat).toJSArray))
+    }, "style" -> geoMarker))
+
+    /**
+     * var vectorLayer = new VectorLayer({
+     * source: new VectorSource({
+     * features: [routeFeature, geoMarker, startMarker, endMarker]
+     * }),
+     * style: function(feature) {
+     * // hide geoMarker if animation is active
+     * if (animating && feature.get('type') === 'geoMarker') {
+     * return null;
+     * }
+     * return styles[feature.get('type')];
+     * }
+     * });
+     */
+    val vectorLayer = new OpenLayers.Vector(js.Dynamic.literal(
+      source = new VectorSource(js.Dynamic.literal(features = js.Array(vehicleMarker))),
+      style = geoMarker))
+
+    olmap.addLayer(vectorLayer)
+    listBufferFantasyLayerAppend.append(vectorLayer)
 
   }
   def setView(view: View): Unit = olmap.setView(view)

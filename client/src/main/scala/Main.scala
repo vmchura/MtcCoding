@@ -1,6 +1,6 @@
 
 import OpenLayers.{ Feature, LineString, OLMap, OLMapManager, OLMapRequest, OSM, Stroke, Style, Tile, Vector, VectorSource, View }
-import controls.AppShowRoute
+import controls.{ AppShowImprudentes, AppShowRoute, AppShowSegmentosCriticos }
 import org.lrng.binding.html
 import org.scalajs.dom
 import org.scalajs.dom.document
@@ -30,6 +30,22 @@ import js.JSConverters._
         println("EnableAppShowRoute !!")
       } else {
         println("DISABLE AppShowRoute !!")
+      }
+
+      val v = document.getElementById("EnableAppShowPuntosCriticos")
+      if (v != null) {
+        AppShowSegmentosCriticos.init()
+        println("EnableAppShowPuntosCriticos !!")
+      } else {
+        println("DISABLE AppShowPuntosCriticos !!")
+      }
+
+      val imp = document.getElementById("EnableAppShowImprudentes")
+      if (imp != null) {
+        AppShowImprudentes.init()
+        println("EnableAppShowImprudentes !!")
+      } else {
+        println("DISABLE EnableAppShowImprudentes !!")
       }
     }
 

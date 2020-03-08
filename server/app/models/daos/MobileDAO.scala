@@ -53,7 +53,9 @@ trait MobileDAO {
 
   def findSegmentosCriticos(rutaID: Int): Future[Option[(String, Int, Seq[LineStringSH], LineStringSH)]]
 
-  def getDataChartVelocity(rutaID: Int): Future[Seq[Int]]
+  def getDataChartVelocity(rutaID: Int): Future[Seq[(Int, Int)]]
+
+  def getSegmentosVelocidad(rutaID: Int): Future[Option[(Seq[(Int, Int)], Seq[LineStringSH], LineStringSH)]]
 
   def getPasajerosEInformales(rutaID: Int): Future[(Int, Int)]
 }

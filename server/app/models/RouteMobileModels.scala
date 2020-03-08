@@ -38,7 +38,16 @@ case class Travel(
  * @param velocidad VELCIDAD NEGATIVA PARA INDICAR QUE YA SE TERMINO EL VIAJE
  */
 case class DataTravel(idDataTravel: Int, dataTime: DateTime, idTravel: Int, prog: Int, velocidad: Int) {
-  def toDataTravelSH(): DataTravelSH = DataTravelSH(dataTime.getMillis, prog, velocidad)
+  def toDataTravelSH(idRuta: Int): DataTravelSH = {
+    val (lng, lat) = if (rutasOnMemory.contains(idRuta)) {
+      val ruta = rutasOnMemory(idRuta)
+      ruta.findClosestPoint(prog.toDouble)
+
+    } else {
+      (0d, 0d)
+    }
+    DataTravelSH(dataTime.getMillis, lng, lat, velocidad)
+  }
 }
 case class LimiteVelocidad(idLimite: Int, idRuta: Int, progIni: Int, progFin: Int, limite: Int)
 

@@ -16,6 +16,7 @@ import utils.authlayer.DefaultEnv
 import upickle.default._
 
 import scala.concurrent.{ ExecutionContext, Future }
+import PeruRoutes.PeruRoutes.rutasOnMemory
 
 /**
  * The basic application controller.
@@ -55,6 +56,14 @@ class RutaController @Inject() (
   def getRutasAndMetadata() = Action.async {
     mobileDAO.getAllRutasSHMeta().map { seq =>
       Ok(Json.obj("response" -> write(seq)))
+    }
+  }
+  def getLineStringRuta(idRuta: Int) = Action {
+    if (rutasOnMemory.contains(idRuta)) {
+      val ls = LineStringSH((0, 0, 255), 4d, rutasOnMemory(idRuta).coordinates.map { case (a, b, _) => (a, b) }.toIndexedSeq)
+      Ok(Json.obj("response" -> write(ls)))
+    } else {
+      BadRequest("ERROR, RUTA NO EXISTE")
     }
   }
 }

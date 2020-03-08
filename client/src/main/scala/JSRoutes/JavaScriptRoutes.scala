@@ -27,6 +27,7 @@ trait TRoutesController extends js.Object {
 @js.native
 trait TRutaController extends js.Object {
   def getRutasAndMetadata(): PlayCall[Seq[RutaSHMeta]] = js.native
+  def getLineStringRuta(idRuta: Int): PlayCall[LineStringSH] = js.native
 }
 
 @js.native
@@ -39,5 +40,5 @@ trait TReportController extends js.Object {
   def findSegmentosCriticos(idRuta: Int): PlayCall[Option[(String, Int, Seq[LineStringSH], LineStringSH)]] = js.native
   def getDataChartVelocity(idRuta: Int): PlayCall[Seq[Int]] = js.native
   def getPasajerosEInformales(idRuta: Int): PlayCall[(Int, Int)] = js.native
-
+  def getSegmentosVelocidad(idRuta: Int): PlayCall[Option[(Seq[(Int, Int)], Seq[LineStringSH], LineStringSH)]] = js.native
 }

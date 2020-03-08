@@ -22,7 +22,9 @@ class JavaScriptRouter @Inject() (components: ControllerComponents)
         routes.javascript.ReportController.findSegmentosCriticos,
         routes.javascript.ReportController.getDataChartVelocity,
         routes.javascript.ReportController.getPasajerosEInformales,
-        routes.javascript.RutaController.getRutasAndMetadata
+        routes.javascript.ReportController.getSegmentosVelocidad,
+        routes.javascript.RutaController.getRutasAndMetadata,
+        routes.javascript.RutaController.getLineStringRuta
 
       )
 

@@ -40,7 +40,15 @@ class MobileDAOImpl @Inject() (
 
   override def addDataTravel(dataTravel: DataTravel): Future[Int] = {
     if (dataTravel.velocidad >= 0) {
-      db.run(dataTravelTQ += dataTravel)
+      for {
+        _ <- if (dataTravel.velocidad <= 90) Future.successful(0) else {
+          db.run(travelTQ.filter(_.idTravel === dataTravel.idTravel).map(_.infringio).update(true))
+        }
+        res <- db.run(dataTravelTQ += dataTravel)
+      } yield {
+        res
+      }
+
     } else {
       db.run(travelTQ.filter(_.idTravel === dataTravel.idTravel).map(_.isLive).update(false)).map(_ => -1)
     }
@@ -204,11 +212,12 @@ class MobileDAOImpl @Inject() (
     }
   }
 
-  override def getDataChartVelocity(rutaID: Int): Future[Seq[Int]] = {
+  override def getDataChartVelocity(rutaID: Int): Future[Seq[(Int, Int)]] = {
     if (rutasOnMemory.contains(rutaID)) {
       val ruta = rutasOnMemory(rutaID)
       for {
         allData <- getDataFromRuta(rutaID)
+        allLimits <- db.run(limiteVelocidadTQ.filter(_.idRuta === rutaID).result)
       } yield {
         val hmProm = allData.groupBy(dt => dt.prog / 100).toList.map {
           case (hm, seqDT) => {
@@ -221,16 +230,16 @@ class MobileDAOImpl @Inject() (
             (hm * 100, prom)
           }
         }.sorted
-
-        val hmComplete = hmProm.foldLeft((0, List.empty[Int])) {
+        def getLimitVelocidad(prog: Int): Int = allLimits.filter(limite => limite.progIni <= prog && prog <= limite.progFin).map(_.limite).maxOption.getOrElse(90)
+        val hmComplete = hmProm.foldLeft((0, List.empty[(Int, Int)])) {
           case ((mustBe, prevList), (current, velProm)) =>
 
             if (current == mustBe) {
-              (current + 100, velProm :: prevList)
+              (current + 100, (velProm, getLimitVelocidad(current)) :: prevList)
             } else {
               assert(current > mustBe)
-              val zeros = (mustBe until current by 100).map(_ => 0).toList
-              (current + 100, velProm :: (zeros ++ prevList))
+              val zeros = (mustBe until current by 100).map(x => (0, getLimitVelocidad(x))).toList
+              (current + 100, (velProm, getLimitVelocidad(current)) :: (zeros ++ prevList))
             }
         }._2
 
@@ -248,6 +257,55 @@ class MobileDAOImpl @Inject() (
       informales <- db.run(travelTQ.filter(t => t.idRuta === rutaID && t.esInformal === true).length.result)
     } yield {
       (numPersonas, informales)
+    }
+  }
+  def getSegmentosVelocidad(rutaID: Int): Future[Option[(Seq[(Int, Int)], Seq[LineStringSH], LineStringSH)]] = {
+    if (rutasOnMemory.contains(rutaID)) {
+      for {
+        promedioBase <- getDataChartVelocity(rutaID)
+      } yield {
+
+        val l = promedioBase.length
+        val progresivas = (0 until l).map {
+          _ * 100
+        }
+        val segmentos = promedioBase.zip(progresivas).foldLeft((List.empty[(Int, Int)])) {
+          case (lista, ((prom, base), prog)) =>
+            if (prom > base) {
+
+              lista match {
+                case ((ini, fin)) :: tail =>
+                  if (fin + 100 == prog)
+                    (ini, prog) :: tail
+                  else {
+                    (prog, prog) :: (ini, fin) :: tail
+                  }
+                case Nil => (prog, prog) :: Nil
+
+              }
+
+            } else {
+              lista
+            }
+        }
+
+        val ruta = rutasOnMemory(rutaID)
+
+        val segmentosLS = segmentos.flatMap {
+          case (u, v) =>
+            val coordinates = ruta.findRange(u.toDouble, v.toDouble)
+            if (coordinates.nonEmpty) {
+              Some(LineStringSH((255, 0, 0), 6d, coordinates))
+            } else {
+              None
+            }
+        }
+
+        val rutaLS = LineStringSH((0, 0, 255), 3d, ruta.coordinates.map { case (u, v, _) => (u, v) }.toIndexedSeq)
+        Some((promedioBase, segmentosLS, rutaLS))
+      }
+    } else {
+      Future.successful(None)
     }
   }
 }

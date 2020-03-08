@@ -126,13 +126,6 @@ object AppShowRoute {
 
   }
 
-  def plotKmPeligrosos(data: Seq[(Int, Double)]): Unit = {
-    val x = data.map(_._1)
-    val y = data.map(_._2)
-    plotlyutils.drawMap(x.toJSArray, y.toJSArray, "perfilCarretera")
-
-  }
-
   def actionWhenRutaSelected(rutaSHMeta: RutaSHMeta): Unit = {
     rutaSelected.value = Some(rutaSHMeta)
     val playCall = JavaScriptRoutes.controllers.ReportController.findSegmentosCriticos(rutaSHMeta.idRuta)

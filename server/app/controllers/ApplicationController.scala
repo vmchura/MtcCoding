@@ -41,6 +41,16 @@ class ApplicationController @Inject() (
     Ok(views.html.home())
 
   }
+  def velocidades = silhouette.UserAwareAction { implicit request =>
+
+    Ok(views.html.velocidades())
+
+  }
+  def realtime = silhouette.UserAwareAction { implicit request =>
+
+    Ok(views.html.realtime())
+
+  }
 
   def contactMe = Action { implicit request =>
     request.body.asFormUrlEncoded match {

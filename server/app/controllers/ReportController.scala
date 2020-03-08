@@ -42,7 +42,7 @@ class ReportController @Inject() (
 
   def findDangerousVehiclesLive(idRuta: Int) = Action.async { implicit request =>
     mobileDAO.findDangerousVehiclesLive(idRuta).map { s =>
-      val toSend: Seq[(TravelSH, DataTravelSH)] = s.map { case (travel, dataTravel) => (travel.toTravelSH(), dataTravel.toDataTravelSH()) }
+      val toSend: Seq[(TravelSH, DataTravelSH)] = s.map { case (travel, dataTravel) => (travel.toTravelSH(), dataTravel.toDataTravelSH(idRuta)) }
       Ok(Json.obj("response" -> write(toSend)))
     }
   }
@@ -64,7 +64,7 @@ class ReportController @Inject() (
 
   def findInformalVehiclesLive(idRuta: Int) = Action.async { implicit request =>
     mobileDAO.findInformalVehiclesLive(idRuta).map { s =>
-      val toSend: Seq[(TravelSH, DataTravelSH)] = s.map { case (travel, dataTravel) => (travel.toTravelSH(), dataTravel.toDataTravelSH()) }
+      val toSend: Seq[(TravelSH, DataTravelSH)] = s.map { case (travel, dataTravel) => (travel.toTravelSH(), dataTravel.toDataTravelSH(idRuta)) }
       Ok(Json.obj("response" -> write(toSend)))
     }
   }
@@ -92,6 +92,13 @@ class ReportController @Inject() (
 
   def getPasajerosEInformales(idRuta: Int) = Action.async { implicit request =>
     mobileDAO.getPasajerosEInformales(idRuta).map { p =>
+      Ok(Json.obj("response" -> write(p)))
+    }
+
+  }
+  def getSegmentosVelocidad(rutaID: Int) = Action.async { implicit request =>
+    mobileDAO.getSegmentosVelocidad(rutaID).map { p =>
+
       Ok(Json.obj("response" -> write(p)))
     }
 

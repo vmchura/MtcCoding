@@ -32,6 +32,9 @@ object AppShowRoute {
 
   val textPrefix = Var[String]("")
 
+  val vehiculosInformales = Var[String]("~")
+  val personasReportando = Var[String]("~")
+
   @html
   val inputPrefix = {
     val in: NodeBinding[HTMLInputElement] = <input type="email" id="inputrute" class="form-control" data:aria-describedby="ruta" placeholder="Escoja ruta"> </input>
@@ -83,19 +86,19 @@ object AppShowRoute {
 
   }
   @html
-  def getCard(colorTextTitle: String, title: String, text: String, icon: NodeBinding[Node]) = <div class="col-xl-3 col-md-6 mb-4">
-                                                                                                <div class={ s"card border-left-$colorTextTitle shadow h-100 py-2" }>
-                                                                                                  <div class="card-body">
-                                                                                                    <div class="row no-gutters align-items-center">
-                                                                                                      <div class="col mr-2">
-                                                                                                        <div class={ s"text-xs font-weight-bold text-$colorTextTitle text-uppercase mb-1" }>{ title }</div>
-                                                                                                        <div class="h5 mb-0 font-weight-bold text-gray-800">{ text }</div>
-                                                                                                      </div>
-                                                                                                      { icon }
-                                                                                                    </div>
-                                                                                                  </div>
-                                                                                                </div>
-                                                                                              </div>
+  def getCard(colorTextTitle: String, title: String, text: Var[String], icon: NodeBinding[Node]) = <div class="col-xl-6 col-md-6 mb-4">
+                                                                                                     <div class={ s"card border-left-$colorTextTitle shadow h-100 py-2" }>
+                                                                                                       <div class="card-body">
+                                                                                                         <div class="row no-gutters align-items-center">
+                                                                                                           <div class="col mr-2">
+                                                                                                             <div class={ s"text-xs font-weight-bold text-$colorTextTitle text-uppercase mb-1" }>{ title }</div>
+                                                                                                             <div class="h5 mb-0 font-weight-bold text-gray-800">{ text.bind }</div>
+                                                                                                           </div>
+                                                                                                           { icon }
+                                                                                                         </div>
+                                                                                                       </div>
+                                                                                                     </div>
+                                                                                                   </div>
 
   @html
   val triangleIconError: NodeBinding[HTMLDivElement] = <div class="col-auto"><i class="fa fa-exclamation-triangle fa-2x text-black-300"></i></div>
@@ -109,17 +112,15 @@ object AppShowRoute {
   @html
   val pasajeroIcon: NodeBinding[HTMLDivElement] = <div class="col-auto"><i class="fa fa-user-edit fa-2x text-black-300"></i></div>
 
-  val cardMetrosPeligrosos = getCard("danger", "Metros peligrosos", "45 metros", triangleIconError)
-  val cardVehiculosInformales = getCard("warning", "Vehículos informales", "32 unidades", carIcon)
-  val cardReducction = getCard("primary", "Cambio Km peligrosos recorridos", "Incremento 43.2 Km", tachometerIcon)
-  val cardPassanger = getCard("success", "Pasajeros reportando", "104 personas", pasajeroIcon)
+  //val cardMetrosPeligrosos = getCard("danger", "Metros peligrosos", "45 metros", triangleIconError)
+  val cardVehiculosInformales = getCard("warning", "Vehículos informales", vehiculosInformales, carIcon)
+  //val cardReducction = getCard("primary", "Cambio Km peligrosos recorridos", "Incremento 43.2 Km", tachometerIcon)
+  val cardPassanger = getCard("success", "Pasajeros reportando", personasReportando, pasajeroIcon)
 
   @html
   val rowCards = {
     <div class="row">
-      { cardMetrosPeligrosos }
       { cardVehiculosInformales }
-      { cardReducction }
       { cardPassanger }
     </div>
 
@@ -129,19 +130,29 @@ object AppShowRoute {
     val x = data.map(_._1)
     val y = data.map(_._2)
     plotlyutils.drawMap(x.toJSArray, y.toJSArray, "perfilCarretera")
-    /*
-    val plot = Seq(Scatter(x, y, name = "Zonas de peligro"))
-    val layout = Layout(yaxis = Axis().tick)
-    Plotly.plot("perfilCarretera", plot)
 
-     */
   }
 
   def actionWhenRutaSelected(rutaSHMeta: RutaSHMeta): Unit = {
+    rutaSelected.value = Some(rutaSHMeta)
     val playCall = JavaScriptRoutes.controllers.ReportController.findSegmentosCriticos(rutaSHMeta.idRuta)
     val playAjax: PlayAjax[Option[(String, Int, Seq[LineStringSH], LineStringSH)]] = new PlayAjax(playCall)
     val futResponse = playAjax.callByAjaxWithParser(dyn => read[Option[(String, Int, Seq[LineStringSH], LineStringSH)]](dyn.response.toString))
     updateReport(futResponse)
+
+    val playCallCards = JavaScriptRoutes.controllers.ReportController.getPasajerosEInformales(rutaSHMeta.idRuta)
+    val playAjaxCards = new PlayAjax(playCallCards)
+    val futResponseCards = playAjaxCards.callByAjaxWithParser(dyn => read[(Int, Int)](dyn.response.toString()))
+    updateCards(futResponseCards)
+  }
+
+  def updateCards(futResponse: Future[Either[String, (Int, Int)]]): Unit = {
+    futResponse.onComplete {
+      case Success(Right((numPasajeros, numInformales))) =>
+        personasReportando.value = numPasajeros.toString + " personas"
+        vehiculosInformales.value = numInformales.toString + " vehículos"
+      case _ => println("ERROR CARDS")
+    }
   }
 
   @html
@@ -185,6 +196,9 @@ object AppShowRoute {
       case Success(Left(error)) => println(s"LEFT(error) = $error")
       case Success(Right(Some((tagRuta, porcentajeInformalidad, informales, lineString)))) =>
         println("SUCCESS!!")
+
+        plotlyutils.drawPie(porcentajeInformalidad)
+
         val mapOL = mapOLOpt.getOrElse(new OLMapManager("mapShowExactRoad"))
         mapOL.cleanLayers()
         mapOL.addRoute(lineString)

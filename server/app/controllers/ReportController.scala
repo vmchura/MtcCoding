@@ -83,11 +83,18 @@ class ReportController @Inject() (
     }
   }
 
-  def getDataChartVelocity(rutaID: Int) = Action.async { implicit request =>
-    mobileDAO.getDataChartVelocity(rutaID).map { s =>
+  def getDataChartVelocity(idRuta: Int) = Action.async { implicit request =>
+    mobileDAO.getDataChartVelocity(idRuta).map { s =>
       Ok(Json.obj("response" -> write(s)))
 
     }
+  }
+
+  def getPasajerosEInformales(idRuta: Int) = Action.async { implicit request =>
+    mobileDAO.getPasajerosEInformales(idRuta).map { p =>
+      Ok(Json.obj("response" -> write(p)))
+    }
+
   }
 
 }

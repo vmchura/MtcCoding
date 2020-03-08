@@ -19,6 +19,8 @@ GET /reporter/findInformalVehiclesLive/:idRuta  controllers.ReportController.fin
 GET /reporter/findRutasInformales               controllers.ReportController.findRutasInformales()
 GET /reporter/findSegmentosCriticos/:idRuta     controllers.ReportController.findSegmentosCriticos(idRuta: Int)
 GET /reporter/getDataChartVelocity/:idRuta      controllers.ReportController.getDataChartVelocity(idRuta: Int)
+GET /reporter/getPasajerosEInformales/:idRuta      controllers.ReportController.getPasajerosEInformales(idRuta: Int)
+
 GET /ruta/getRutasAndMetadata                   controllers.RutaController.getRutasAndMetadata()
 
 

@@ -38,5 +38,6 @@ trait TReportController extends js.Object {
   def findRutasInformales(): PlayCall[Seq[(String, Int, Seq[LineStringSH], LineStringSH)]] = js.native
   def findSegmentosCriticos(idRuta: Int): PlayCall[Option[(String, Int, Seq[LineStringSH], LineStringSH)]] = js.native
   def getDataChartVelocity(idRuta: Int): PlayCall[Seq[Int]] = js.native
+  def getPasajerosEInformales(idRuta: Int): PlayCall[(Int, Int)] = js.native
 
 }

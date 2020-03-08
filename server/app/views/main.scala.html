@@ -52,11 +52,12 @@
         <script src="@assets.path("jscript/d3-format.min.js")"></script>
 
         <link href="@controllers.routes.Assets.versioned("admin/vendor/fontawesome-free/css/all.min.css")" rel="stylesheet" type="text/css">
-        <link href="@controllers.routes.Assets.versioned("admin/css/sb-admin-2.min.css")" rel="stylesheet">
+        <link href="@controllers.routes.Assets.versioned("admin/css/sb-admin-2.css")" rel="stylesheet">
         <link href="@controllers.routes.Assets.versioned("css/nunito.css")" rel="stylesheet">
         <link rel="stylesheet" media="screen" href="@controllers.routes.Assets.versioned("css/ol.css")">
         <script src="@assets.path("jscript/ol.js")"></script>
         <script src="@assets.path("jscript/scalaol.js")"></script>
+        <script src="@assets.path("jscript/pie.js")"></script>
 
         <script type="text/javascript" src="@controllers.routes.JavaScriptRouter.javascriptRoutes()"></script>
         @scalajs.html.scripts("MTCClient", controllers.routes.Assets.versioned(_).toString, name => getClass.getResource(s"/public/$name") != null)
@@ -247,7 +248,7 @@
 
             <!-- Custom scripts for all pages-->
 
-        <script src="@controllers.routes.Assets.versioned("admin/js/sb-admin-2.min.js")"></script>
+        <script src="@controllers.routes.Assets.versioned("admin/js/sb-admin-2.js")"></script>
 
             <!-- Page level plugins -->
         <script src="@controllers.routes.Assets.versioned("admin/vendor/chart.js/Chart.min.js")"></script>

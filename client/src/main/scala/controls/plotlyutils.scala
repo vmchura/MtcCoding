@@ -9,4 +9,5 @@ object plotlyutils extends js.Object {
 
   //def updateMap(lines: Seq[LineStringSH]): Unit = js.native
   def drawMap(x: js.Array[Int], y: js.Array[Double], targetParam: String): js.Object = js.native
+  def drawPie(informales: Int): Unit = js.native
 }

@@ -241,4 +241,13 @@ class MobileDAOImpl @Inject() (
       Future.successful(Nil)
     }
   }
+
+  override def getPasajerosEInformales(rutaID: Int): Future[(Int, Int)] = {
+    for {
+      numPersonas <- db.run(travelTQ.filter(_.idRuta === rutaID).length.result)
+      informales <- db.run(travelTQ.filter(t => t.idRuta === rutaID && t.esInformal === true).length.result)
+    } yield {
+      (numPersonas, informales)
+    }
+  }
 }

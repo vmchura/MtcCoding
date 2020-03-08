@@ -10549,19 +10549,18 @@ a:focus {
 
 .chart-area {
   position: relative;
-  height: 10rem;
   width: 100%;
 }
 
 @media (min-width: 768px) {
   .chart-area {
-    height: 20rem;
+    height: 10rem;
   }
 }
 
 .chart-bar {
   position: relative;
-  height: 10rem;
+  height: 20rem;
   width: 100%;
 }
 
@@ -10573,13 +10572,13 @@ a:focus {
 
 .chart-pie {
   position: relative;
-  height: 15rem;
+  height: 35rem;
   width: 100%;
 }
 
 @media (min-width: 768px) {
   .chart-pie {
-    height: calc(20rem - 43px) !important;
+    height: calc(40rem - 43px) !important;
   }
 }
 
